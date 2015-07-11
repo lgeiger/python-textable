@@ -42,14 +42,20 @@ def genspec(col):
     else:
         return 'S[table-format={}.{}]'.format(amax, bmax)
 
-def table(names, cols):
+def table(names, cols, rowheader=None):
     result = []
 
-    spec = ' '.join(map(genspec, cols))
+    if rowheader:
+        spec = 'l {}'.format(' '.join(map(genspec, cols)))
+    else:
+        spec = ' '.join(map(genspec, cols))
 
     result.append(r'\begin{{tabular}}{{{}}}'.format(spec))
     result.append(r'\toprule')
-    result.append(' & '.join(map(r'\multicolumn{{1}}{{c}}{{{}}}'.format, names)) + r'\\')
+    if rowheader:
+        result.append(' & ' + ' & '.join(map(r'\multicolumn{{1}}{{c}}{{{}}}'.format, names)) + r'\\')
+    else:
+        result.append(' & '.join(map(r'\multicolumn{{1}}{{c}}{{{}}}'.format, names)) + r'\\')
     result.append(r'\midrule')
 
     line = []
@@ -57,6 +63,8 @@ def table(names, cols):
     for c in cols:
         maxlen = max(len(c), maxlen)
     for i in range(maxlen):
+        if rowheader:
+            line.append(rowheader[i])
         for c in cols:
             try:
                 if is_uncert(c[i]):
@@ -72,4 +80,3 @@ def table(names, cols):
     result.append(r'\end{tabular}')
 
     return '\n'.join(result)
-
