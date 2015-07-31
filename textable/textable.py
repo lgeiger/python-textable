@@ -42,20 +42,20 @@ def genspec(col):
     else:
         return 'S[table-format={}.{}]'.format(amax, bmax)
 
-def table(names, cols, rowheader=None):
+def table(toprow, cols, leftcol=None):
     result = []
 
-    if rowheader:
+    if leftcol is not None:
         spec = 'l {}'.format(' '.join(map(genspec, cols)))
     else:
         spec = ' '.join(map(genspec, cols))
 
     result.append(r'\begin{{tabular}}{{{}}}'.format(spec))
     result.append(r'\toprule')
-    if rowheader:
-        result.append(' & ' + ' & '.join(map(r'\multicolumn{{1}}{{c}}{{{}}}'.format, names)) + r'\\')
+    if leftcol is not None:
+        result.append(' & ' + ' & '.join(map(r'\multicolumn{{1}}{{c}}{{{}}}'.format, toprow)) + r'\\')
     else:
-        result.append(' & '.join(map(r'\multicolumn{{1}}{{c}}{{{}}}'.format, names)) + r'\\')
+        result.append(' & '.join(map(r'\multicolumn{{1}}{{c}}{{{}}}'.format, toprow)) + r'\\')
     result.append(r'\midrule')
 
     line = []
@@ -63,8 +63,8 @@ def table(names, cols, rowheader=None):
     for c in cols:
         maxlen = max(len(c), maxlen)
     for i in range(maxlen):
-        if rowheader:
-            line.append(rowheader[i])
+        if leftcol is not None:
+            line.append(leftcol[i])
         for c in cols:
             try:
                 if is_uncert(c[i]):
