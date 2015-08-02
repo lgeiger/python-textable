@@ -43,6 +43,30 @@ def genspec(col):
         return 'S[table-format={}.{}]'.format(amax, bmax)
 
 def table(toprow, cols, leftcol=None):
+    '''
+    Generates LaTeX tables from numpy arrays.
+
+    Parameters
+    ----------
+    toprow : array_like
+        A row at the top used to label the columns.
+    cols : array_like
+        Your Data.
+    leftcol : array_like, optional
+        First column used to label the rows.
+
+    Returns
+    ----------
+    str
+        LaTeX table.
+
+    Example
+    ----------
+    x = array([1., 2., 3.])
+    y = array([ufloat(2, 0.1), ufloat(4, 0.5), ufloat(2, 0.04)])
+    table(['x', 'y'], [x, y], ['a', 'b', 'c'])
+    '''
+
     result = []
 
     if leftcol is not None:
@@ -80,3 +104,33 @@ def table(toprow, cols, leftcol=None):
     result.append(r'\end{tabular}')
 
     return '\n'.join(result)
+
+def write_table(filename, toprow, cols, leftcol=None):
+    '''
+    Writes LaTeX tables from numpy arrays to .tex file.
+
+    Parameters
+    ----------
+    filename : str
+    toprow : array_like
+        A row at the top used to label the columns.
+    cols : array_like
+        Your Data.
+    leftcol : array_like, optional
+        First column used to label the rows.
+
+    Returns
+    ----------
+    .tex file
+        ready to import in your main LaTeX document.
+
+    Example
+    ----------
+    x = array([1., 2., 3.])
+    y = array([ufloat(2, 0.1), ufloat(4, 0.5), ufloat(2, 0.04)])
+    write_table('testtable', ['x', 'y'], [x, y], ['a', 'b', 'c'])
+    '''
+
+    f = open(filename + '.tex', 'w')
+    f.write(table(toprow, cols, leftcol))
+    f.close()
