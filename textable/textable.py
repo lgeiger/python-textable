@@ -42,7 +42,7 @@ def genspec(col):
     else:
         return 'S[table-format={}.{}]'.format(amax, bmax)
 
-def table(toprow, cols, leftcol=None):
+def table(toprow, cols, leftcol=None, filename=None):
     '''
     Generates LaTeX tables from numpy arrays.
 
@@ -54,11 +54,8 @@ def table(toprow, cols, leftcol=None):
         Your Data.
     leftcol : array_like, optional
         First column used to label the rows.
-
-    Returns
-    ----------
-    str
-        LaTeX table.
+    filename: str, optional
+        If set .tex file is saved
 
     Example
     ----------
@@ -68,18 +65,14 @@ def table(toprow, cols, leftcol=None):
     '''
 
     result = []
-
+    spec = ' '.join(map(genspec, cols))
+    head = ' & '.join(map(r'\multicolumn{{1}}{{c}}{{{}}}'.format, toprow)) + r'\\'
     if leftcol is not None:
-        spec = 'l {}'.format(' '.join(map(genspec, cols)))
-    else:
-        spec = ' '.join(map(genspec, cols))
-
+        spec = 'l ' + spec
+        head = ' & ' + head
     result.append(r'\begin{{tabular}}{{{}}}'.format(spec))
     result.append(r'\toprule')
-    if leftcol is not None:
-        result.append(' & ' + ' & '.join(map(r'\multicolumn{{1}}{{c}}{{{}}}'.format, toprow)) + r'\\')
-    else:
-        result.append(' & '.join(map(r'\multicolumn{{1}}{{c}}{{{}}}'.format, toprow)) + r'\\')
+    result.append(head)
     result.append(r'\midrule')
 
     line = []
@@ -103,34 +96,9 @@ def table(toprow, cols, leftcol=None):
     result.append(r'\bottomrule')
     result.append(r'\end{tabular}')
 
-    return '\n'.join(result)
-
-def write_table(filename, toprow, cols, leftcol=None):
-    '''
-    Writes LaTeX tables from numpy arrays to .tex file.
-
-    Parameters
-    ----------
-    filename : str
-    toprow : array_like
-        A row at the top used to label the columns.
-    cols : array_like
-        Your Data.
-    leftcol : array_like, optional
-        First column used to label the rows.
-
-    Returns
-    ----------
-    .tex file
-        ready to import in your main LaTeX document.
-
-    Example
-    ----------
-    x = array([1., 2., 3.])
-    y = array([ufloat(2, 0.1), ufloat(4, 0.5), ufloat(2, 0.04)])
-    write_table('testtable', ['x', 'y'], [x, y], ['a', 'b', 'c'])
-    '''
-
-    f = open(filename + '.tex', 'w')
-    f.write(table(toprow, cols, leftcol))
-    f.close()
+    if filename is not None:
+        f = open(filename + '.tex', 'w')
+        f.write('\n'.join(result))
+        f.close()
+    else:
+        return '\n'.join(result)
