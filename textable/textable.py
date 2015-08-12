@@ -42,17 +42,17 @@ def genspec(col):
     else:
         return 'S[table-format={}.{}]'.format(amax, bmax)
 
-def table(toprow, cols, leftcol=None, filename=None, caption=None, label=None, env=True, loc='h'):
+def table(cols, headerrow, headercol=None, filename=None, caption=None, label=None, env=True, loc='h'):
     '''
     Generates LaTeX tables from numpy arrays.
 
     Parameters
     ----------
-    toprow : array_like
-        A row at the top used to label the columns.
     cols : array_like
         Your Data.
-    leftcol : array_like, optional
+    headerrow : array_like
+        A row at the top used to label the columns.
+    headercol : array_like, optional
         First column used to label the rows.
     filename: str, optional
         If set .tex file is saved.
@@ -74,8 +74,8 @@ def table(toprow, cols, leftcol=None, filename=None, caption=None, label=None, e
 
     result = []
     spec = ' '.join(map(genspec, cols))
-    head = ' & '.join(map(r'\multicolumn{{1}}{{c}}{{{}}}'.format, toprow)) + r'\\'
-    if leftcol is not None:
+    head = ' & '.join(map(r'\multicolumn{{1}}{{c}}{{{}}}'.format, headerrow)) + r'\\'
+    if headercol is not None:
         spec = 'l ' + spec
         head = ' & ' + head
     if env is True:
@@ -91,8 +91,8 @@ def table(toprow, cols, leftcol=None, filename=None, caption=None, label=None, e
     for c in cols:
         maxlen = max(len(c), maxlen)
     for i in range(maxlen):
-        if leftcol is not None:
-            line.append(leftcol[i])
+        if headercol is not None:
+            line.append(headercol[i])
         for c in cols:
             try:
                 if is_uncert(c[i]):

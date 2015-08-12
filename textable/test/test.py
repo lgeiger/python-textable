@@ -9,5 +9,5 @@ def test_table():
     y = array([ufloat(2, 0.1), ufloat(4, 0.5), ufloat(2, 0.04)])
 
     f = open('test.tex', 'w')
-    f.write(table(['x', 'y'], [x, y], ['a', 'b', 'c']))
+    f.write(table([x, y], ['x', 'y'], ['a', 'b', 'c']))
     f.close()
