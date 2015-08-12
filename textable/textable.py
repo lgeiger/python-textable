@@ -1,12 +1,11 @@
-def numplaces(num, uncert=False):
+def numplaces(num, fprec, uncert=False):
     if uncert:
         l, r = '{}'.format(num).split('+/-')
         a, b = l.split('.')
         c, d = r.split('.')
         return len(a), len(b), len(d)
     else:
-        # TODO temporary hack
-        a, b = '{:.1f}'.format(num).split('.')
+        a, b = '{}'.format(round(num, fprec)).split('.')
         return len(a), len(b)
 
 def is_uncert(num):
@@ -18,13 +17,13 @@ def is_uncert(num):
         uncert = False
     return uncert
 
-def genspec(col):
+def genspec(col, fprec):
     amax = 0
     bmax = 0
     cmax = 0
     for v in col:
         if is_uncert(v):
-            a, b, c = numplaces(v, uncert=True)
+            a, b, c = numplaces(v, fprec, uncert=True)
             if a > amax:
                 amax = a
             if b > bmax:
@@ -32,7 +31,7 @@ def genspec(col):
             if c > cmax:
                 cmax = c
         else:
-            a, b = numplaces(v)
+            a, b = numplaces(v, fprec)
             if a > amax:
                 amax = a
             if b > bmax:
@@ -42,7 +41,7 @@ def genspec(col):
     else:
         return 'S[table-format={}.{}]'.format(amax, bmax)
 
-def table(cols, headerrow, headercol=None, filename=None, caption=None, label=None, env=True, loc='h'):
+def table(cols, headerrow, headercol=None, filename=None, fprec=3, caption=None, label=None, env=True, loc='h'):
     '''
     Generates LaTeX tables from numpy arrays.
 
@@ -56,6 +55,8 @@ def table(cols, headerrow, headercol=None, filename=None, caption=None, label=No
         First column used to label the rows.
     filename: str, optional
         If set .tex file is saved.
+    fprec: int
+        Round floats to given precision. Defaults to 3 decimal places.
     caption: str, optional
         Adds a LaTeX caption.
     label: str, optional
@@ -69,11 +70,11 @@ def table(cols, headerrow, headercol=None, filename=None, caption=None, label=No
     ----------
     x = array([1., 2., 3.])
     y = array([ufloat(2, 0.1), ufloat(4, 0.5), ufloat(2, 0.04)])
-    table(['x', 'y'], [x, y], ['a', 'b', 'c'])
+    table([x, y], ['x', 'y'])
     '''
 
     result = []
-    spec = ' '.join(map(genspec, cols))
+    spec = ' '.join([genspec(col, fprec) for col in cols])
     head = ' & '.join(map(r'\multicolumn{{1}}{{c}}{{{}}}'.format, headerrow)) + r'\\'
     if headercol is not None:
         spec = 'l ' + spec
@@ -98,7 +99,7 @@ def table(cols, headerrow, headercol=None, filename=None, caption=None, label=No
                 if is_uncert(c[i]):
                     line.append('{:L}'.format(c[i]))
                 else:
-                    line.append('{}'.format(c[i]))
+                    line.append('{}'.format(round(c[i], fprec)))
             except:
                 line.append('')
         result.append(' & '.join(line) + r' \\')
