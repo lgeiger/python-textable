@@ -42,7 +42,7 @@ def genspec(col):
     else:
         return 'S[table-format={}.{}]'.format(amax, bmax)
 
-def table(toprow, cols, leftcol=None, filename=None):
+def table(toprow, cols, leftcol=None, filename=None, caption=None, label=None, env=True, loc='h'):
     '''
     Generates LaTeX tables from numpy arrays.
 
@@ -55,7 +55,15 @@ def table(toprow, cols, leftcol=None, filename=None):
     leftcol : array_like, optional
         First column used to label the rows.
     filename: str, optional
-        If set .tex file is saved
+        If set .tex file is saved.
+    caption: str, optional
+        Adds a LaTeX caption.
+    label: str, optional
+        Adds a LaTeX label.
+    env: bool, optional
+        If True (default) everything is wrapped in the LaTeX table environment.
+    loc: str, optional
+        Specifies the position of the table environment. Defaults to 'h'.
 
     Example
     ----------
@@ -70,6 +78,9 @@ def table(toprow, cols, leftcol=None, filename=None):
     if leftcol is not None:
         spec = 'l ' + spec
         head = ' & ' + head
+    if env is True:
+        result.append(r'\begin{{table}}[{}]'.format(loc))
+        result.append(r'\centering')
     result.append(r'\begin{{tabular}}{{{}}}'.format(spec))
     result.append(r'\toprule')
     result.append(head)
@@ -95,6 +106,12 @@ def table(toprow, cols, leftcol=None, filename=None):
 
     result.append(r'\bottomrule')
     result.append(r'\end{tabular}')
+    if caption is not None:
+        result.append(r'\caption{{{}}}'.format(caption))
+    if label is not None:
+        result.append(r'\label{{{}}}'.format(label))
+    if env is True:
+        result.append(r'\end{table}')
 
     if filename is not None:
         f = open(filename + '.tex', 'w')
