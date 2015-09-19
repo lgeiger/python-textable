@@ -1,3 +1,6 @@
+from numpy import round
+
+
 def numplaces(num, fprec, uncert=False):
     if uncert:
         l, r = '{}'.format(num).split('+/-')
