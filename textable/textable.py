@@ -8,6 +8,7 @@ def numplaces(num, fprec, uncert=False):
         a, b = '{}'.format(round(num, fprec)).split('.')
         return len(a), len(b)
 
+
 def is_uncert(num):
     uncert = True
     try:
@@ -16,6 +17,7 @@ def is_uncert(num):
     except:
         uncert = False
     return uncert
+
 
 def genspec(col, fprec):
     amax = 0
@@ -41,15 +43,17 @@ def genspec(col, fprec):
     else:
         return 'S[table-format={}.{}]'.format(amax, bmax)
 
-def table(cols, headerrow, headercol=None, filename=None, fprec=3, caption=None, label=None, env=True, loc='h'):
+
+def table(cols, headerrow=None, headercol=None, filename=None, fprec=3,
+          caption=None, label=None, env=True, loc='h'):
     '''
-    Generates LaTeX tables from numpy arrays.
+    Generates LaTeX tables from arrays.
 
     Parameters
     ----------
     cols : array_like
         Your Data.
-    headerrow : array_like
+    headerrow : array_like, optional
         A row at the top used to label the columns.
     headercol : array_like, optional
         First column used to label the rows.
@@ -75,7 +79,11 @@ def table(cols, headerrow, headercol=None, filename=None, fprec=3, caption=None,
 
     result = []
     spec = ' '.join([genspec(col, fprec) for col in cols])
-    head = ' & '.join(map(r'\multicolumn{{1}}{{c}}{{{}}}'.format, headerrow)) + r'\\'
+    if headerrow is not None:
+        head = ' & '.join(map(r'\multicolumn{{1}}{{c}}{{{}}}'.format,
+                              headerrow)) + r'\\'
+    else:
+        head = ''
     if headercol is not None:
         spec = 'l ' + spec
         head = ' & ' + head
@@ -84,8 +92,9 @@ def table(cols, headerrow, headercol=None, filename=None, fprec=3, caption=None,
         result.append(r'\centering')
     result.append(r'\begin{{tabular}}{{{}}}'.format(spec))
     result.append(r'\toprule')
-    result.append(head)
-    result.append(r'\midrule')
+    if headerrow is not None:
+        result.append(head)
+        result.append(r'\midrule')
 
     line = []
     maxlen = 0
