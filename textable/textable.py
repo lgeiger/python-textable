@@ -1,4 +1,4 @@
-from numpy import round
+from numpy import round, shape
 
 
 def numplaces(num, fprec, uncert=False):
@@ -8,7 +8,12 @@ def numplaces(num, fprec, uncert=False):
         c, d = r.split('.')
         return len(a), len(b), len(d)
     else:
-        a, b = '{}'.format(round(num, fprec)).split('.')
+        try:
+            a, b = '{}'.format(round(num, fprec)).split('.')
+        except:
+            a = '{}'.format(round(num, fprec))
+            b = ''
+
         return len(a), len(b)
 
 
@@ -26,7 +31,20 @@ def genspec(col, fprec):
     amax = 0
     bmax = 0
     cmax = 0
-    for v in col:
+    addsys = ''
+    if len(shape(col)) == 2:
+        col1 = col[0]
+        col2 = col[1]
+        dmax = 0
+        for sys in col2:
+            d = round(sys, fprec)
+            if len(str(d)) > dmax:
+                dmax = len(str(d))
+                addsys = r', table-space-text-post=$\, \pm \, {}$'.format(d)
+    else:
+        col1 = col
+
+    for v in col1:
         if is_uncert(v):
             a, b, c = numplaces(v, fprec, uncert=True)
             if a > amax:
@@ -42,9 +60,9 @@ def genspec(col, fprec):
             if b > bmax:
                 bmax = b
     if cmax:
-        return 'S[table-format={}.{}({})]'.format(amax, bmax, cmax)
+        return 'S[table-format={}.{}({}){}]'.format(amax, bmax, cmax, addsys)
     else:
-        return 'S[table-format={}.{}]'.format(amax, bmax)
+        return 'S[table-format={}.{}{}]'.format(amax, bmax, addsys)
 
 
 def table(cols, headerrow=None, headercol=None, filename=None, fprec=3,
@@ -55,7 +73,9 @@ def table(cols, headerrow=None, headercol=None, filename=None, fprec=3,
     Parameters
     ----------
     cols : array_like
-        Your Data.
+        Your Data. Input cols=[x, y] where x and y are 1-d arrays or lists.
+        If x is two dimensional x[0] should be your data and x[1] the
+        systematic uncertainty.
     headerrow : array_like, optional
         A row at the top used to label the columns.
     headercol : array_like, optional
@@ -78,6 +98,12 @@ def table(cols, headerrow=None, headercol=None, filename=None, fprec=3,
     x = array([1., 2., 3.])
     y = array([ufloat(2, 0.1), ufloat(4, 0.5), ufloat(2, 0.04)])
     table([x, y], ['x', 'y'])
+
+    |  x  |       y       |
+    |:---:|:-------------:|
+    | 1.0 | 2.00 \pm 0.10 |
+    | 2.0 | 4.0 \pm 0.5   |
+    | 3.0 | 2.00 \pm 0.04 |
     '''
 
     result = []
@@ -102,18 +128,33 @@ def table(cols, headerrow=None, headercol=None, filename=None, fprec=3,
     line = []
     maxlen = 0
     for c in cols:
-        maxlen = max(len(c), maxlen)
+        if len(shape(c)) == 2:
+            c1 = c[0]
+        else:
+            c1 = c
+        maxlen = max(len(c1), maxlen)
     for i in range(maxlen):
         if headercol is not None:
             line.append(headercol[i])
         for c in cols:
-            try:
-                if is_uncert(c[i]):
-                    line.append('{:L}'.format(c[i]))
-                else:
-                    line.append('{}'.format(round(c[i], fprec)))
-            except:
-                line.append('')
+            if len(shape(c)) == 2:
+                try:
+                    if is_uncert(c[0][i]):
+                        line.append(r'{:L} {{$\, \pm \, {}$}}'.format(
+                                    c[0][i], round(c[1][i], fprec)))
+                    else:
+                        line.append(r'{} {{$\, \pm \, {}$}}'.format(round(
+                                    c[0][i], fprec), round(c[1][i], fprec)))
+                except:
+                    line.append('')
+            else:
+                try:
+                    if is_uncert(c[i]):
+                        line.append('{:L}'.format(c[i]))
+                    else:
+                        line.append('{}'.format(round(c[i], fprec)))
+                except:
+                    line.append('')
         result.append(' & '.join(line) + r' \\')
         line = []
 
